@@ -1,0 +1,15 @@
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { CustomerDetailContent } from "@/components/customers/customer-detail-content";
+
+export default async function CustomerDetailPage() {
+  const session = await auth();
+  if (!session) redirect("/login");
+
+  return (
+    <DashboardLayout>
+      <CustomerDetailContent />
+    </DashboardLayout>
+  );
+}

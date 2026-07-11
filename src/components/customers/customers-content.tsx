@@ -141,12 +141,14 @@ export function CustomersContent() {
                 {customers.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell>
-                      <div>
-                        <p className="font-medium">{customer.name}</p>
-                        {customer.company && (
-                          <p className="text-sm text-gray-500">{customer.company}</p>
-                        )}
-                      </div>
+                      <Link href={`/customers/${customer.id}`} className="hover:underline">
+                        <div>
+                          <p className="font-medium">{customer.name}</p>
+                          {customer.company && (
+                            <p className="text-sm text-gray-500">{customer.company}</p>
+                          )}
+                        </div>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
