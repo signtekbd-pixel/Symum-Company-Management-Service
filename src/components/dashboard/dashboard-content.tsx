@@ -5,7 +5,8 @@ import Link from "next/link";
 import {
   ShoppingCart, Users, Package, CreditCard,
   ArrowUpRight, Eye, Factory, BarChart3,
-  Building2, Cog, Tag, AlertTriangle
+  Building2, Cog, Tag, AlertTriangle,
+  Shield, CheckCircle, Activity, Key, Settings2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
@@ -77,6 +78,7 @@ export function DashboardContent({ role }: DashboardContentProps) {
   if (role === "OPERATOR") return <OperatorDashboard stats={s} />;
   if (role === "SALES") return <SalesDashboard stats={s} />;
   if (role === "MANAGER") return <ManagerDashboard stats={s} />;
+  if (role === "DEV") return <DevSuperAdminDashboard stats={s} />;
   return <AdminDashboard stats={s} role={role} />;
 }
 
@@ -170,6 +172,110 @@ function AdminDashboard({ stats: s, role }: { stats: DashboardStats; role: strin
               <Link href="/settings" className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-border hover:border-gray-400 hover:bg-gray-50 transition-colors">
                 <Cog className="h-8 w-8 text-gray-500 mb-2" />
                 <span className="text-sm font-medium text-gray-700">Settings</span>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function DevSuperAdminDashboard({ stats: s }: { stats: DashboardStats }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Super Admin Dashboard</h1>
+        <p className="text-muted-foreground">Full system control and monitoring.</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Orders" value={s.totalOrders.toString()} icon={ShoppingCart} color="blue" />
+        <StatCard title="Active Customers" value={s.activeCustomers.toString()} icon={Users} color="green" />
+        <StatCard title="In Production" value={s.inProduction.toString()} icon={Factory} color="yellow" />
+        <StatCard title="Revenue (This Month)" value={formatCurrency(s.monthlyRevenue)} icon={CreditCard} color="purple" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Users" value={(s.totalUsers || 0).toString()} icon={Users} color="green" />
+        <StatCard title="Products" value={(s.totalProducts || 0).toString()} icon={Package} color="blue" />
+        <StatCard title="Materials" value={(s.totalMaterials || 0).toString()} icon={Tag} color="yellow" />
+        <StatCard title="Branches" value={(s.totalBranches || 0).toString()} icon={Building2} color="purple" />
+      </div>
+
+      {(s.lowStockMaterials || 0) > 0 && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+              <div>
+                <p className="font-medium text-yellow-800">Low Stock Alert</p>
+                <p className="text-sm text-yellow-600">{s.lowStockMaterials} material(s) are below their minimum stock level.</p>
+              </div>
+              <Link href="/inventory" className="ml-auto text-sm font-medium text-yellow-700 hover:underline">View Inventory</Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentOrdersCard orders={s.recentOrders} />
+        <ProductionStatusCard jobs={s.productionJobs} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Machines</CardTitle>
+            <Link href="/machines" className="text-sm text-blue-600 hover:underline">Manage</Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Total Machines</span>
+                <span className="font-medium">{s.totalMachines || 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Available Now</span>
+                <span className="font-medium text-green-600">{s.activeMachines || 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">In Use / Maintenance</span>
+                <span className="font-medium text-yellow-600">{(s.totalMachines || 0) - (s.activeMachines || 0)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Super Admin Controls</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <Link href="/audit-logs" className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-border hover:border-red-400 hover:bg-red-50 transition-colors">
+                <Shield className="h-8 w-8 text-red-500 mb-2" />
+                <span className="text-sm font-medium text-gray-700">Audit Logs</span>
+              </Link>
+              <Link href="/system-settings" className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-border hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                <Settings2 className="h-8 w-8 text-blue-500 mb-2" />
+                <span className="text-sm font-medium text-gray-700">System Settings</span>
+              </Link>
+              <Link href="/approvals" className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-border hover:border-green-400 hover:bg-green-50 transition-colors">
+                <CheckCircle className="h-8 w-8 text-green-500 mb-2" />
+                <span className="text-sm font-medium text-gray-700">Approvals</span>
+              </Link>
+              <Link href="/system-health" className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-border hover:border-purple-400 hover:bg-purple-50 transition-colors">
+                <Activity className="h-8 w-8 text-purple-500 mb-2" />
+                <span className="text-sm font-medium text-gray-700">System Health</span>
+              </Link>
+              <Link href="/api-keys" className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-border hover:border-yellow-400 hover:bg-yellow-50 transition-colors">
+                <Key className="h-8 w-8 text-yellow-500 mb-2" />
+                <span className="text-sm font-medium text-gray-700">API Keys</span>
+              </Link>
+              <Link href="/users" className="flex flex-col items-center p-4 rounded-lg border-2 border-dashed border-border hover:border-gray-400 hover:bg-gray-50 transition-colors">
+                <Users className="h-8 w-8 text-gray-500 mb-2" />
+                <span className="text-sm font-medium text-gray-700">Manage Users</span>
               </Link>
             </div>
           </CardContent>

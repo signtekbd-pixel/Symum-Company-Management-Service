@@ -49,6 +49,10 @@ model User {
   orders        Order[]
   proofReviews  Proof[]
   productionJobs ProductionJob[]
+  auditLogs     AuditLog[]
+  approvalRequests ApprovalRequest[]
+  approvedRequests ApprovalRequest[] @relation("Approver")
+  apiKeys       ApiKey[]
 
   @@index([email])
   @@index([roleId])
@@ -534,4 +538,77 @@ enum ProductionJobStatus {
   PAUSED
   COMPLETED
   FAILED
+}
+
+// ─── Super Admin: Audit Logs ──────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // "create", "update", "delete", "export", "login", "impersonate"
+  entity    String   // "user", "order", "product", "system", etc.
+  entityId  String?
+  oldValues Json?
+  newValues Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+// ─── Super Admin: System Settings ─────────────────────────────────────────
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Super Admin: Approval Requests ───────────────────────────────────────
+
+model ApprovalRequest {
+  id          String           @id @default(cuid())
+  requesterId String
+  requester   User             @relation(fields: [requesterId], references: [id])
+  approverId  String?
+  approver    User?            @relation("Approver", fields: [approverId], references: [id])
+  type        String           // "delete_user", "export_data", "system_change", "bulk_operation"
+  description String
+  targetId    String?
+  status      ApprovalStatus   @default(PENDING)
+  reviewedAt  DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@index([requesterId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── Super Admin: API Keys ────────────────────────────────────────────────
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  keyHash    String    @unique
+  keyPrefix  String    // first 8 chars for display
+  scopes     String[]  // ["orders:read", "products:write"]
+  isActive   Boolean   @default(true)
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  createdAt  DateTime  @default(now())
+
+  @@index([keyHash])
 }

@@ -12,6 +12,11 @@ import {
   Building2,
   Cog,
   Truck,
+  Shield,
+  CheckCircle,
+  Activity,
+  Key,
+  Settings2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,12 +26,13 @@ export interface NavItem {
   title: string;
   href: string;
   icon: LucideIcon;
+  devOnly?: boolean;
 }
 
 export const allNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Users", href: "/users", icon: Users },
-  { title: "Branches", href: "/branches", icon: Building2 },
+  { title: "Users", href: "/users", icon: Users, devOnly: true },
+  { title: "Branches", href: "/branches", icon: Building2, devOnly: true },
   { title: "Customers", href: "/customers", icon: Users },
   { title: "Orders", href: "/orders", icon: ShoppingCart },
   { title: "Products", href: "/products", icon: Package },
@@ -42,9 +48,17 @@ export const allNavItems: NavItem[] = [
   { title: "Settings", href: "/settings", icon: Settings },
 ];
 
+export const devOnlyNavItems: NavItem[] = [
+  { title: "Audit Logs", href: "/audit-logs", icon: Shield },
+  { title: "System Settings", href: "/system-settings", icon: Settings2 },
+  { title: "Approvals", href: "/approvals", icon: CheckCircle },
+  { title: "System Health", href: "/system-health", icon: Activity },
+  { title: "API Keys", href: "/api-keys", icon: Key },
+];
+
 const roleNavItems: Record<Role, string[]> = {
-  DEV: allNavItems.map((i) => i.href),
-  ADMIN: allNavItems.map((i) => i.href),
+  DEV: [...allNavItems.map((i) => i.href), ...devOnlyNavItems.map((i) => i.href)],
+  ADMIN: [...allNavItems.map((i) => i.href), "/approvals"],
   MANAGER: ["/dashboard", "/orders", "/products", "/product-categories", "/inventory", "/material-categories", "/production", "/proofs", "/reports", "/settings"],
   SALES: ["/dashboard", "/customers", "/orders", "/invoicing", "/proofs", "/reports", "/settings"],
   OPERATOR: ["/dashboard", "/production", "/machines", "/proofs", "/settings"],
@@ -52,8 +66,8 @@ const roleNavItems: Record<Role, string[]> = {
 };
 
 export const roleAllowedRoutes: Record<Role, string[]> = {
-  DEV: allNavItems.map((i) => i.href),
-  ADMIN: allNavItems.map((i) => i.href),
+  DEV: [...allNavItems.map((i) => i.href), ...devOnlyNavItems.map((i) => i.href)],
+  ADMIN: [...allNavItems.map((i) => i.href), "/approvals"],
   MANAGER: ["/dashboard", "/orders", "/products", "/product-categories", "/inventory", "/material-categories", "/production", "/proofs", "/reports", "/settings"],
   SALES: ["/dashboard", "/customers", "/orders", "/invoicing", "/proofs", "/reports", "/settings"],
   OPERATOR: ["/dashboard", "/production", "/machines", "/proofs", "/settings"],
@@ -63,11 +77,18 @@ export const roleAllowedRoutes: Record<Role, string[]> = {
 export function getNavItemsForRole(role: string | undefined): NavItem[] {
   if (!role) return [];
   const allowed = roleAllowedRoutes[role as Role] || [];
-  return allNavItems.filter((item) => allowed.includes(item.href));
+  const baseItems = allNavItems.filter((item) => allowed.includes(item.href));
+  if (role === "DEV") {
+    return [...baseItems, ...devOnlyNavItems];
+  }
+  if (role === "ADMIN") {
+    return [...baseItems, ...devOnlyNavItems.filter((i) => i.href === "/approvals")];
+  }
+  return baseItems;
 }
 
 export const roleLabels: Record<Role, string> = {
-  DEV: "Developer",
+  DEV: "Super Admin",
   ADMIN: "Admin",
   MANAGER: "Manager",
   SALES: "Sales",

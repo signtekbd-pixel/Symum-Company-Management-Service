@@ -123,6 +123,30 @@ async function ensureSeeded() {
     prisma.customer.upsert({ where: { id: "customer-seed-3" }, update: {}, create: { id: "customer-seed-3", name: "Digital World", phone: "+8801733333333", email: "contact@digitalworld.com", type: "BUSINESS", creditLimit: 200000 } }),
   ]);
 
+  // Seed system settings
+  const systemSettings = [
+    { key: "business_name", value: "PrintERP Ltd", description: "Company name displayed on invoices and reports" },
+    { key: "business_email", value: "info@prinerp.com", description: "Primary business email" },
+    { key: "business_phone", value: "+8801712345678", description: "Primary business phone" },
+    { key: "business_address", value: "123 Print Street, Dhaka", description: "Business address" },
+    { key: "currency", value: "BDT", description: "Currency code (BDT, USD, EUR)" },
+    { key: "tax_rate", value: "15", description: "Default tax rate percentage" },
+    { key: "low_stock_threshold", value: "10", description: "Alert when material stock falls below this" },
+    { key: "order_prefix", value: "ORD", description: "Prefix for order numbers" },
+    { key: "invoice_prefix", value: "INV", description: "Prefix for invoice numbers" },
+    { key: "require_approval_deletes", value: "true", description: "Require DEV approval for bulk deletes" },
+  ];
+
+  await Promise.all(
+    systemSettings.map((s) =>
+      prisma.systemSetting.upsert({
+        where: { key: s.key },
+        update: {},
+        create: s,
+      })
+    )
+  );
+
   console.log("Auto-seeded database on first login");
 }
 

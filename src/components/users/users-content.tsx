@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Search, Edit, Trash2, UserCheck, UserX } from "lucide-react";
+import { Plus, Search, Edit, Trash2, UserCheck, UserX, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,7 @@ interface Branch {
   name: string;
 }
 
-export function UsersContent() {
+export function UsersContent({ currentRole }: { currentRole?: string }) {
   const [users, setUsers] = React.useState<User[]>([]);
   const [roles, setRoles] = React.useState<Role[]>([]);
   const [branches, setBranches] = React.useState<Branch[]>([]);
@@ -191,6 +191,22 @@ export function UsersContent() {
     }
   }
 
+  async function handleImpersonate(user: User) {
+    if (!confirm(`Impersonate ${user.name}? You will be logged in as this user.`)) return;
+    try {
+      const res = await fetch(`/api/users/${user.id}/impersonate`, { method: "POST" });
+      if (res.ok) {
+        toast.success(`Now impersonating ${user.name}`);
+        window.location.href = "/dashboard";
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to impersonate");
+      }
+    } catch {
+      toast.error("Failed to impersonate user");
+    }
+  }
+
   const roleBadgeColor = (role: string) => {
     switch (role) {
       case "DEV": return "bg-purple-100 text-purple-700";
@@ -274,6 +290,11 @@ export function UsersContent() {
                         <Button variant="ghost" size="icon" onClick={() => openEdit(user)}>
                           <Edit className="h-4 w-4" />
                         </Button>
+                        {currentRole === "DEV" && user.isActive && (
+                          <Button variant="ghost" size="icon" className="text-blue-600" onClick={() => handleImpersonate(user)} title="Impersonate">
+                            <LogIn className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button variant="ghost" size="icon" className={user.isActive ? "text-red-600" : "text-green-600"} onClick={() => handleToggleActive(user)}>
                           {user.isActive ? <Trash2 className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                         </Button>
