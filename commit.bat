@@ -1,4 +1,4 @@
 cd /d F:\website
 git add -A
-git commit -m "seed demo users for all roles, update login page credentials"
+git commit -m "fix: force-dynamic all pages, resilient middleware, keep-alive endpoint"
 git push
