@@ -58,14 +58,10 @@ export function MaterialFormModal({ open, onClose, onSuccess, material }: Materi
 
   React.useEffect(() => {
     if (open) {
-      fetch("/api/inventory")
+      fetch("/api/material-categories")
         .then((r) => r.json())
         .then((data) => {
-          const cats = data.materials?.reduce((acc: MaterialCategory[], m: any) => {
-            if (!acc.find((c) => c.id === m.category.id)) acc.push(m.category);
-            return acc;
-          }, []) || [];
-          setCategories(cats);
+          setCategories(data.categories || []);
         })
         .catch(() => {});
 

@@ -52,14 +52,10 @@ export function ProductFormModal({ open, onClose, onSuccess, product }: ProductF
 
   React.useEffect(() => {
     if (open) {
-      fetch("/api/products")
+      fetch("/api/product-categories")
         .then((r) => r.json())
         .then((data) => {
-          const cats = data.products?.reduce((acc: ProductCategory[], p: any) => {
-            if (!acc.find((c) => c.id === p.category.id)) acc.push(p.category);
-            return acc;
-          }, []) || [];
-          setCategories(cats);
+          setCategories(data.categories || []);
         })
         .catch(() => {});
 

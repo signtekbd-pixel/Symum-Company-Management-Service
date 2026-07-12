@@ -8,6 +8,10 @@ import {
   Eye,
   BarChart3,
   Settings,
+  Tag,
+  Building2,
+  Cog,
+  Truck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,12 +25,18 @@ export interface NavItem {
 
 export const allNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Users", href: "/users", icon: Users },
+  { title: "Branches", href: "/branches", icon: Building2 },
   { title: "Customers", href: "/customers", icon: Users },
   { title: "Orders", href: "/orders", icon: ShoppingCart },
   { title: "Products", href: "/products", icon: Package },
+  { title: "Product Categories", href: "/product-categories", icon: Tag },
   { title: "Inventory", href: "/inventory", icon: Package },
+  { title: "Material Categories", href: "/material-categories", icon: Tag },
+  { title: "Suppliers", href: "/suppliers", icon: Truck },
   { title: "Invoicing", href: "/invoicing", icon: CreditCard },
   { title: "Production", href: "/production", icon: Factory },
+  { title: "Machines", href: "/machines", icon: Cog },
   { title: "Proofs", href: "/proofs", icon: Eye },
   { title: "Reports", href: "/reports", icon: BarChart3 },
   { title: "Settings", href: "/settings", icon: Settings },
@@ -35,18 +45,18 @@ export const allNavItems: NavItem[] = [
 const roleNavItems: Record<Role, string[]> = {
   DEV: allNavItems.map((i) => i.href),
   ADMIN: allNavItems.map((i) => i.href),
-  MANAGER: ["/dashboard", "/orders", "/products", "/inventory", "/production", "/proofs", "/reports", "/settings"],
+  MANAGER: ["/dashboard", "/orders", "/products", "/product-categories", "/inventory", "/material-categories", "/production", "/proofs", "/reports", "/settings"],
   SALES: ["/dashboard", "/customers", "/orders", "/invoicing", "/proofs", "/reports", "/settings"],
-  OPERATOR: ["/dashboard", "/production", "/proofs", "/settings"],
+  OPERATOR: ["/dashboard", "/production", "/machines", "/proofs", "/settings"],
   CUSTOMER: ["/dashboard", "/orders", "/proofs", "/settings"],
 };
 
 export const roleAllowedRoutes: Record<Role, string[]> = {
-  DEV: ["/dashboard", "/customers", "/orders", "/products", "/inventory", "/invoicing", "/production", "/proofs", "/reports", "/settings"],
-  ADMIN: ["/dashboard", "/customers", "/orders", "/products", "/inventory", "/invoicing", "/production", "/proofs", "/reports", "/settings"],
-  MANAGER: ["/dashboard", "/orders", "/products", "/inventory", "/production", "/proofs", "/reports", "/settings"],
+  DEV: allNavItems.map((i) => i.href),
+  ADMIN: allNavItems.map((i) => i.href),
+  MANAGER: ["/dashboard", "/orders", "/products", "/product-categories", "/inventory", "/material-categories", "/production", "/proofs", "/reports", "/settings"],
   SALES: ["/dashboard", "/customers", "/orders", "/invoicing", "/proofs", "/reports", "/settings"],
-  OPERATOR: ["/dashboard", "/production", "/proofs", "/settings"],
+  OPERATOR: ["/dashboard", "/production", "/machines", "/proofs", "/settings"],
   CUSTOMER: ["/dashboard", "/orders", "/proofs", "/settings"],
 };
 

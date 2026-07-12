@@ -21,12 +21,35 @@ export function SettingsContent() {
   const [user, setUser] = React.useState<UserData | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [changingPassword, setChangingPassword] = React.useState(false);
 
   const [profileForm, setProfileForm] = React.useState({ name: "", email: "", phone: "" });
   const [passwordForm, setPasswordForm] = React.useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
 
+  const [companyForm, setCompanyForm] = React.useState({
+    name: "PrintERP Ltd",
+    email: "info@prinerp.com",
+    phone: "+8801712345678",
+    address: "123 Print Street, Dhaka",
+  });
+
+  const [notifForm, setNotifForm] = React.useState({
+    emailOrders: true,
+    smsStatus: true,
+    dailyReports: false,
+    lowStock: true,
+  });
+
   React.useEffect(() => {
     fetchSettings();
+    const savedCompany = localStorage.getItem("printerp_company");
+    if (savedCompany) {
+      try { setCompanyForm(JSON.parse(savedCompany)); } catch {}
+    }
+    const savedNotifs = localStorage.getItem("printerp_notifications");
+    if (savedNotifs) {
+      try { setNotifForm(JSON.parse(savedNotifs)); } catch {}
+    }
   }, []);
 
   async function fetchSettings() {
@@ -67,6 +90,52 @@ export function SettingsContent() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handlePasswordChange() {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters");
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const res = await fetch("/api/settings/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Password updated successfully");
+        setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      } else {
+        toast.error(data.error || "Failed to update password");
+      }
+    } catch {
+      toast.error("Failed to update password");
+    } finally {
+      setChangingPassword(false);
+    }
+  }
+
+  function handleCompanySave() {
+    localStorage.setItem("printerp_company", JSON.stringify(companyForm));
+    toast.success("Company settings saved");
+  }
+
+  function handleNotifSave() {
+    localStorage.setItem("printerp_notifications", JSON.stringify(notifForm));
+    toast.success("Notification settings saved");
   }
 
   if (loading) {
@@ -159,22 +228,22 @@ export function SettingsContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
-                    <Input defaultValue="PrintERP Ltd" />
+                    <Input value={companyForm.name} onChange={(e) => setCompanyForm({ ...companyForm, name: e.target.value })} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Company Email</label>
-                    <Input defaultValue="info@prinerp.com" type="email" />
+                    <Input value={companyForm.email} onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })} type="email" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <Input defaultValue="+8801712345678" />
+                    <Input value={companyForm.phone} onChange={(e) => setCompanyForm({ ...companyForm, phone: e.target.value })} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <Input defaultValue="123 Print Street, Dhaka" />
+                    <Input value={companyForm.address} onChange={(e) => setCompanyForm({ ...companyForm, address: e.target.value })} />
                   </div>
                 </div>
-                <Button onClick={() => toast.success("Company settings saved")}>
+                <Button onClick={handleCompanySave}>
                   <Save className="mr-2 h-4 w-4" /> Save Changes
                 </Button>
               </CardContent>
@@ -190,23 +259,23 @@ export function SettingsContent() {
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <label className="flex items-center gap-3">
-                    <input type="checkbox" defaultChecked className="h-4 w-4 rounded border-gray-300" />
+                    <input type="checkbox" checked={notifForm.emailOrders} onChange={(e) => setNotifForm({ ...notifForm, emailOrders: e.target.checked })} className="h-4 w-4 rounded border-gray-300" />
                     <span className="text-sm">Email notifications for new orders</span>
                   </label>
                   <label className="flex items-center gap-3">
-                    <input type="checkbox" defaultChecked className="h-4 w-4 rounded border-gray-300" />
+                    <input type="checkbox" checked={notifForm.smsStatus} onChange={(e) => setNotifForm({ ...notifForm, smsStatus: e.target.checked })} className="h-4 w-4 rounded border-gray-300" />
                     <span className="text-sm">SMS notifications for order status changes</span>
                   </label>
                   <label className="flex items-center gap-3">
-                    <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
+                    <input type="checkbox" checked={notifForm.dailyReports} onChange={(e) => setNotifForm({ ...notifForm, dailyReports: e.target.checked })} className="h-4 w-4 rounded border-gray-300" />
                     <span className="text-sm">Daily production reports</span>
                   </label>
                   <label className="flex items-center gap-3">
-                    <input type="checkbox" defaultChecked className="h-4 w-4 rounded border-gray-300" />
+                    <input type="checkbox" checked={notifForm.lowStock} onChange={(e) => setNotifForm({ ...notifForm, lowStock: e.target.checked })} className="h-4 w-4 rounded border-gray-300" />
                     <span className="text-sm">Low stock alerts</span>
                   </label>
                 </div>
-                <Button onClick={() => toast.success("Notification settings saved")}>
+                <Button onClick={handleNotifSave}>
                   <Save className="mr-2 h-4 w-4" /> Save Changes
                 </Button>
               </CardContent>
@@ -217,26 +286,41 @@ export function SettingsContent() {
             <Card>
               <CardHeader>
                 <CardTitle>Security Settings</CardTitle>
-                <CardDescription>Manage your password and security</CardDescription>
+                <CardDescription>Change your password</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                    <Input type="password" placeholder="Enter current password" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Password *</label>
+                    <Input
+                      type="password"
+                      placeholder="Enter current password"
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    />
                   </div>
                   <div></div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                    <Input type="password" placeholder="Enter new password" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password *</label>
+                    <Input
+                      type="password"
+                      placeholder="Enter new password (min 6 characters)"
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                    <Input type="password" placeholder="Confirm new password" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password *</label>
+                    <Input
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    />
                   </div>
                 </div>
-                <Button onClick={() => toast.success("Password updated")}>
-                  <Save className="mr-2 h-4 w-4" /> Update Password
+                <Button onClick={handlePasswordChange} disabled={changingPassword}>
+                  <Save className="mr-2 h-4 w-4" /> {changingPassword ? "Updating..." : "Update Password"}
                 </Button>
               </CardContent>
             </Card>

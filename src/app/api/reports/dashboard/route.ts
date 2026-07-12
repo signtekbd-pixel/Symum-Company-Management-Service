@@ -14,6 +14,13 @@ export async function GET() {
       monthlyRevenueResult,
       recentOrders,
       productionJobs,
+      totalUsers,
+      totalProducts,
+      totalMaterials,
+      totalBranches,
+      totalMachines,
+      activeMachines,
+      lowStockMaterials,
     ] = await Promise.all([
       prisma.order.count({
         where: { status: { not: "CANCELLED" } },
@@ -45,6 +52,18 @@ export async function GET() {
         },
         where: { status: { in: ["QUEUED", "IN_PROGRESS"] } },
       }),
+      prisma.user.count({ where: { isActive: true } }),
+      prisma.product.count({ where: { isActive: true } }),
+      prisma.material.count({ where: { isActive: true } }),
+      prisma.branch.count({ where: { isActive: true } }),
+      prisma.machine.count(),
+      prisma.machine.count({ where: { status: "AVAILABLE" } }),
+      prisma.material.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true, code: true, minStockLevel: true, reorderPoint: true },
+      }).then((materials) =>
+        materials.filter((m) => m.minStockLevel > 0 && m.minStockLevel <= m.reorderPoint).length
+      ),
     ]);
 
     return NextResponse.json({
@@ -54,6 +73,13 @@ export async function GET() {
       monthlyRevenue: Number(monthlyRevenueResult._sum.totalAmount || 0),
       recentOrders,
       productionJobs,
+      totalUsers,
+      totalProducts,
+      totalMaterials,
+      totalBranches,
+      totalMachines,
+      activeMachines,
+      lowStockMaterials,
     });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
@@ -64,6 +90,13 @@ export async function GET() {
       monthlyRevenue: 0,
       recentOrders: [],
       productionJobs: [],
+      totalUsers: 0,
+      totalProducts: 0,
+      totalMaterials: 0,
+      totalBranches: 0,
+      totalMachines: 0,
+      activeMachines: 0,
+      lowStockMaterials: 0,
     });
   }
 }
