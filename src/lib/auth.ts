@@ -24,6 +24,8 @@ async function ensureSeeded() {
   });
 
   const adminPassword = await bcrypt.hash("admin123", 12);
+
+  // DEV user
   await prisma.user.upsert({
     where: { email: "admin@prinerp.com" },
     update: {},
@@ -33,6 +35,76 @@ async function ensureSeeded() {
       password: adminPassword,
       phone: "+8801712345678",
       roleId: roles[0].id,
+      branchId: branch.id,
+    },
+  });
+
+  // ADMIN user
+  await prisma.user.upsert({
+    where: { email: "admin2@prinerp.com" },
+    update: {},
+    create: {
+      email: "admin2@prinerp.com",
+      name: "Office Admin",
+      password: adminPassword,
+      phone: "+8801712345679",
+      roleId: roles[1].id,
+      branchId: branch.id,
+    },
+  });
+
+  // MANAGER user
+  await prisma.user.upsert({
+    where: { email: "manager@prinerp.com" },
+    update: {},
+    create: {
+      email: "manager@prinerp.com",
+      name: "Production Manager",
+      password: adminPassword,
+      phone: "+8801712345680",
+      roleId: roles[2].id,
+      branchId: branch.id,
+    },
+  });
+
+  // SALES user
+  await prisma.user.upsert({
+    where: { email: "sales@prinerp.com" },
+    update: {},
+    create: {
+      email: "sales@prinerp.com",
+      name: "Sales Rep",
+      password: adminPassword,
+      phone: "+8801712345681",
+      roleId: roles[3].id,
+      branchId: branch.id,
+    },
+  });
+
+  // OPERATOR user
+  await prisma.user.upsert({
+    where: { email: "operator@prinerp.com" },
+    update: {},
+    create: {
+      email: "operator@prinerp.com",
+      name: "Machine Operator",
+      password: adminPassword,
+      phone: "+8801712345682",
+      roleId: roles[4].id,
+      branchId: branch.id,
+    },
+  });
+
+  // CUSTOMER user
+  await prisma.user.upsert({
+    where: { email: "customer@prinerp.com" },
+    update: {},
+    create: {
+      email: "customer@prinerp.com",
+      name: "Customer User",
+      password: adminPassword,
+      phone: "+8801712345683",
+      roleId: roles[5].id,
       branchId: branch.id,
     },
   });

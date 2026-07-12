@@ -109,10 +109,15 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>Demo credentials:</p>
-            <p className="mt-1 font-mono text-xs bg-muted p-2 rounded">
-              admin@prinerp.com / admin123
-            </p>
+            <p className="font-medium mb-2">Demo Credentials (password: admin123)</p>
+            <div className="font-mono text-xs bg-muted p-3 rounded-lg space-y-1 text-left">
+              <p><span className="text-primary">DEV:</span> admin@prinerp.com</p>
+              <p><span className="text-primary">ADMIN:</span> admin2@prinerp.com</p>
+              <p><span className="text-primary">MANAGER:</span> manager@prinerp.com</p>
+              <p><span className="text-primary">SALES:</span> sales@prinerp.com</p>
+              <p><span className="text-primary">OPERATOR:</span> operator@prinerp.com</p>
+              <p><span className="text-primary">CUSTOMER:</span> customer@prinerp.com</p>
+            </div>
           </div>
         </div>
       </div>
