@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
-import { roleLabels, type Role } from "@/lib/roles";
+import { roleLabels, type Role, isSuperAdmin } from "@/lib/roles";
 
 interface DashboardStats {
   totalOrders: number;
@@ -78,7 +78,7 @@ export function DashboardContent({ role }: DashboardContentProps) {
   if (role === "OPERATOR") return <OperatorDashboard stats={s} />;
   if (role === "SALES") return <SalesDashboard stats={s} />;
   if (role === "MANAGER") return <ManagerDashboard stats={s} />;
-  if (role === "DEV") return <DevSuperAdminDashboard stats={s} />;
+  if (isSuperAdmin(role)) return <DevSuperAdminDashboard stats={s} />;
   return <AdminDashboard stats={s} role={role} />;
 }
 

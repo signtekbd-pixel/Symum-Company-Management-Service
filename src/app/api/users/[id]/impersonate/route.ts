@@ -17,7 +17,7 @@ export async function POST(
       include: { role: true },
     });
 
-    if (!currentUser || currentUser.role.name !== "DEV") {
+    if (!currentUser || (currentUser.role.name !== "DEV" && currentUser.role.name !== "SUPER_ADMIN")) {
       return NextResponse.json({ error: "Only DEV users can impersonate" }, { status: 403 });
     }
 

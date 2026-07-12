@@ -20,7 +20,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type Role = "DEV" | "ADMIN" | "MANAGER" | "SALES" | "OPERATOR" | "CUSTOMER";
+export type Role = "DEV" | "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "SALES" | "OPERATOR" | "CUSTOMER";
+
+const SUPER_ADMIN_ROLES = ["DEV", "SUPER_ADMIN"];
+
+export function isSuperAdmin(role: string | undefined): boolean {
+  return SUPER_ADMIN_ROLES.includes(role || "");
+}
 
 export interface NavItem {
   title: string;
@@ -55,8 +61,9 @@ export const devOnlyNavItems: NavItem[] = [
   { title: "API Keys", href: "/api-keys", icon: Key },
 ];
 
-const roleNavItems: Record<Role, string[]> = {
+const baseNavRoutes: Record<string, string[]> = {
   DEV: [...allNavItems.map((i) => i.href), ...devOnlyNavItems.map((i) => i.href)],
+  SUPER_ADMIN: [...allNavItems.map((i) => i.href), ...devOnlyNavItems.map((i) => i.href)],
   ADMIN: [...allNavItems.map((i) => i.href), "/approvals"],
   MANAGER: ["/dashboard", "/orders", "/products", "/product-categories", "/inventory", "/material-categories", "/production", "/proofs", "/reports", "/settings"],
   SALES: ["/dashboard", "/customers", "/orders", "/invoicing", "/proofs", "/reports", "/settings"],
@@ -64,20 +71,13 @@ const roleNavItems: Record<Role, string[]> = {
   CUSTOMER: ["/dashboard", "/orders", "/proofs", "/settings"],
 };
 
-export const roleAllowedRoutes: Record<Role, string[]> = {
-  DEV: [...allNavItems.map((i) => i.href), ...devOnlyNavItems.map((i) => i.href)],
-  ADMIN: [...allNavItems.map((i) => i.href), "/approvals"],
-  MANAGER: ["/dashboard", "/orders", "/products", "/product-categories", "/inventory", "/material-categories", "/production", "/proofs", "/reports", "/settings"],
-  SALES: ["/dashboard", "/customers", "/orders", "/invoicing", "/proofs", "/reports", "/settings"],
-  OPERATOR: ["/dashboard", "/production", "/machines", "/proofs", "/settings"],
-  CUSTOMER: ["/dashboard", "/orders", "/proofs", "/settings"],
-};
+export const roleAllowedRoutes: Record<string, string[]> = baseNavRoutes;
 
 export function getNavItemsForRole(role: string | undefined): NavItem[] {
   if (!role) return [];
-  const allowed = roleAllowedRoutes[role as Role] || [];
+  const allowed = roleAllowedRoutes[role] || [];
   const baseItems = allNavItems.filter((item) => allowed.includes(item.href));
-  if (role === "DEV") {
+  if (isSuperAdmin(role)) {
     return [...baseItems, ...devOnlyNavItems];
   }
   if (role === "ADMIN") {
@@ -86,8 +86,9 @@ export function getNavItemsForRole(role: string | undefined): NavItem[] {
   return baseItems;
 }
 
-export const roleLabels: Record<Role, string> = {
+export const roleLabels: Record<string, string> = {
   DEV: "Super Admin",
+  SUPER_ADMIN: "Super Admin",
   ADMIN: "Admin",
   MANAGER: "Manager",
   SALES: "Sales",

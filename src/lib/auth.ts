@@ -26,7 +26,7 @@ async function ensureSeeded() {
   // DEV user
   await prisma.user.upsert({
     where: { email: "admin@prinerp.com" },
-    update: {},
+    update: { roleId: roles[0].id, name: "Admin User", branchId: branch.id, isActive: true },
     create: {
       email: "admin@prinerp.com",
       name: "Admin User",
@@ -40,7 +40,7 @@ async function ensureSeeded() {
   // ADMIN user
   await prisma.user.upsert({
     where: { email: "admin2@prinerp.com" },
-    update: {},
+    update: { roleId: roles[1].id, name: "Office Admin", branchId: branch.id, isActive: true },
     create: {
       email: "admin2@prinerp.com",
       name: "Office Admin",

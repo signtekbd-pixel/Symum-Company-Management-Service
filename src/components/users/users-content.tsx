@@ -210,6 +210,7 @@ export function UsersContent({ currentRole }: { currentRole?: string }) {
   const roleBadgeColor = (role: string) => {
     switch (role) {
       case "DEV": return "bg-purple-100 text-purple-700";
+      case "SUPER_ADMIN": return "bg-purple-100 text-purple-700";
       case "ADMIN": return "bg-red-100 text-red-700";
       case "MANAGER": return "bg-blue-100 text-blue-700";
       case "SALES": return "bg-green-100 text-green-700";
@@ -290,7 +291,7 @@ export function UsersContent({ currentRole }: { currentRole?: string }) {
                         <Button variant="ghost" size="icon" onClick={() => openEdit(user)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        {currentRole === "DEV" && user.isActive && (
+                        {(currentRole === "DEV" || currentRole === "SUPER_ADMIN") && user.isActive && (
                           <Button variant="ghost" size="icon" className="text-blue-600" onClick={() => handleImpersonate(user)} title="Impersonate">
                             <LogIn className="h-4 w-4" />
                           </Button>

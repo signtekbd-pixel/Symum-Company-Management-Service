@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { getNavItemsForRole, devOnlyNavItems } from "@/lib/roles";
+import { getNavItemsForRole, devOnlyNavItems, isSuperAdmin } from "@/lib/roles";
 import {
   Printer,
 } from "lucide-react";
@@ -23,7 +23,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const mainItems = navItems.filter((item) => !devOnlyNavItems.find((d) => d.href === item.href));
   const adminItems = role === "ADMIN" ? devOnlyNavItems.filter((i) => i.href === "/approvals") : [];
-  const devItems = role === "DEV" ? devOnlyNavItems : [];
+  const devItems = isSuperAdmin(role) ? devOnlyNavItems : [];
 
   function renderItem(item: any, index: number | string) {
     const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
