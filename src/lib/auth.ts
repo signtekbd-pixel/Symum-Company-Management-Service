@@ -109,26 +109,11 @@ export const {
           };
         } catch (dbError) {
           console.error("Database error during auth:", dbError);
-          // Fallback: allow hardcoded admin login if DB is unreachable
-          if (
-            credentials.email === "admin@prinerp.com" &&
-            credentials.password === "admin123"
-          ) {
-            return {
-              id: "admin-fallback",
-              email: "admin@prinerp.com",
-              name: "Admin User",
-              role: "SUPER_ADMIN",
-            };
-          }
           return null;
         }
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
