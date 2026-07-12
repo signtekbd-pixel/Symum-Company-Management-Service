@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { roleAllowedRoutes } from "@/lib/roles";
 
 const protectedRoutes = [
   "/dashboard",
@@ -17,13 +18,22 @@ const protectedRoutes = [
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // Check if the route is protected
-  const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
+  if (!req.auth) {
+    const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
+    if (isProtected) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
 
-  if (isProtected && !req.auth) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+  const role = (req.auth.user as any)?.role;
+  const allowedRoutes = roleAllowedRoutes[role as keyof typeof roleAllowedRoutes] || [];
+  const isAllowed = allowedRoutes.some((route) => pathname === route || pathname.startsWith(route + "/"));
+
+  if (!isAllowed && protectedRoutes.some((route) => pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();

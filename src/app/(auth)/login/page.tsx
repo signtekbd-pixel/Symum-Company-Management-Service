@@ -40,22 +40,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
               <Printer className="h-7 w-7 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">PrintERP</h1>
+            <h1 className="text-3xl font-bold text-foreground">PrintERP</h1>
           </div>
-          <p className="text-gray-500">Printing Company Management System</p>
+          <p className="text-muted-foreground">Printing Company Management System</p>
         </div>
 
-        {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Sign in to your account</h2>
+        <div className="bg-card rounded-2xl shadow-xl p-8 border border-border">
+          <h2 className="text-xl font-semibold text-foreground mb-6">Sign in to your account</h2>
 
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
@@ -65,7 +63,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-1">
                 Email address
               </label>
               <Input
@@ -80,7 +78,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-muted-foreground mb-1">
                 Password
               </label>
               <Input
@@ -110,9 +108,9 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
+          <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>Demo credentials:</p>
-            <p className="mt-1 font-mono text-xs bg-gray-50 p-2 rounded">
+            <p className="mt-1 font-mono text-xs bg-muted p-2 rounded">
               admin@prinerp.com / admin123
             </p>
           </div>

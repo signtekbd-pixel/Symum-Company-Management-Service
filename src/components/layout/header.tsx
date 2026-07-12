@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Menu, Bell, Search, ChevronDown, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +33,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-white px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card px-4 sm:px-6">
       <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
         <Menu className="h-5 w-5" />
       </Button>
@@ -51,6 +52,8 @@ export function Header({ onMenuClick }: HeaderProps) {
       </form>
 
       <div className="flex items-center gap-2">
+        <ThemeToggle />
+
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
@@ -59,10 +62,10 @@ export function Header({ onMenuClick }: HeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-medium text-blue-700">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
                 {session?.user?.name?.charAt(0) || "U"}
               </div>
-              <span className="hidden sm:inline-block text-sm font-medium">
+              <span className="hidden sm:inline-block text-sm font-medium text-foreground">
                 {session?.user?.name || "User"}
               </span>
               <ChevronDown className="h-4 w-4 text-gray-400" />

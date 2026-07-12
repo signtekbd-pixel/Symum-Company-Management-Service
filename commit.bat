@@ -1,4 +1,4 @@
 cd /d F:\website
 git add -A
-git commit -m "clean auth: remove bypass, fix next-auth v5 config, remove test files"
+git commit -m "role-based dashboards, sidebar nav, dark mode, middleware auth"
 git push

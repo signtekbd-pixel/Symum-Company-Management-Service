@@ -9,7 +9,7 @@ async function ensureSeeded() {
 
   // Auto-seed: create roles, branch, and admin user
   const roles = await Promise.all([
-    prisma.role.upsert({ where: { name: "SUPER_ADMIN" }, update: {}, create: { name: "SUPER_ADMIN", description: "Super Administrator" } }),
+    prisma.role.upsert({ where: { name: "DEV" }, update: {}, create: { name: "DEV", description: "Developer - Full System Access" } }),
     prisma.role.upsert({ where: { name: "ADMIN" }, update: {}, create: { name: "ADMIN", description: "Administrator" } }),
     prisma.role.upsert({ where: { name: "MANAGER" }, update: {}, create: { name: "MANAGER", description: "Production Manager" } }),
     prisma.role.upsert({ where: { name: "SALES" }, update: {}, create: { name: "SALES", description: "Sales Representative" } }),
