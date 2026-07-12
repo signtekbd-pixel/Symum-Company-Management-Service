@@ -4,10 +4,8 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
 async function ensureSeeded() {
-  const userCount = await prisma.user.count();
-  if (userCount > 0) return;
-
-  // Auto-seed: create roles, branch, and admin user
+  // Always run upserts — idempotent, safe to call multiple times
+  // This fixes partial seed failures from Neon cold-start timeouts
   const roles = await Promise.all([
     prisma.role.upsert({ where: { name: "DEV" }, update: {}, create: { name: "DEV", description: "Developer - Full System Access" } }),
     prisma.role.upsert({ where: { name: "ADMIN" }, update: {}, create: { name: "ADMIN", description: "Administrator" } }),

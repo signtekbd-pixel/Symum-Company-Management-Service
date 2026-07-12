@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Printer, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,12 +11,17 @@ export default function LoginPage() {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
+  const [success, setSuccess] = React.useState("");
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("error")) {
       setError("Invalid email or password");
+      window.history.replaceState({}, "", "/login");
+    }
+    if (params.get("signup") === "success") {
+      setSuccess("Account created! Please sign in.");
       window.history.replaceState({}, "", "/login");
     }
   }, []);
@@ -56,6 +62,12 @@ export default function LoginPage() {
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+              {success}
             </div>
           )}
 
@@ -107,6 +119,15 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
+            <p>
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="text-primary hover:underline font-medium">
+                Sign up
+              </Link>
+            </p>
+          </div>
+
+          <div className="mt-4 text-center text-sm text-muted-foreground">
             <p className="font-medium mb-2">Demo Credentials (password: admin123)</p>
             <div className="font-mono text-xs bg-muted p-3 rounded-lg space-y-1 text-left">
               <p><span className="text-primary">DEV:</span> admin@prinerp.com</p>
