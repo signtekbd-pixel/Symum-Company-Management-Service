@@ -26,13 +26,12 @@ export interface NavItem {
   title: string;
   href: string;
   icon: LucideIcon;
-  devOnly?: boolean;
 }
 
 export const allNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Users", href: "/users", icon: Users, devOnly: true },
-  { title: "Branches", href: "/branches", icon: Building2, devOnly: true },
+  { title: "Users", href: "/users", icon: Users },
+  { title: "Branches", href: "/branches", icon: Building2 },
   { title: "Customers", href: "/customers", icon: Users },
   { title: "Orders", href: "/orders", icon: ShoppingCart },
   { title: "Products", href: "/products", icon: Package },
