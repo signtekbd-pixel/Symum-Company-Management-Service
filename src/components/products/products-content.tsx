@@ -14,23 +14,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
+import { ProductFormModal } from "./product-form-modal";
+import toast from "react-hot-toast";
 
 interface Product {
   id: string;
   name: string;
+  categoryId: string;
   basePrice: number;
   unit: string;
   minQuantity: number;
   leadTimeDays: number;
-  category: {
-    name: string;
-  };
+  category: { name: string };
 }
 
 export function ProductsContent() {
   const [products, setProducts] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState("");
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [editProduct, setEditProduct] = React.useState<Product | null>(null);
 
   React.useEffect(() => {
     fetchProducts();
@@ -41,7 +44,6 @@ export function ProductsContent() {
     try {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
-
       const res = await fetch(`/api/products?${params}`);
       const data = await res.json();
       setProducts(data.products || []);
@@ -52,53 +54,49 @@ export function ProductsContent() {
     }
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    try {
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Product deleted");
+        fetchProducts();
+      }
+    } catch {
+      toast.error("Failed to delete product");
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Products</h1>
           <p className="text-gray-500">Manage your product catalog and pricing</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
+        <Button onClick={() => { setEditProduct(null); setModalOpen(true); }}>
+          <Plus className="mr-2 h-4 w-4" /> Add Product
         </Button>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input
-                  placeholder="Search products..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input placeholder="Search products..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
           </div>
         </CardContent>
       </Card>
 
-      {/* Products Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>All Products</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>All Products</CardTitle></CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
             </div>
           ) : products.length === 0 ? (
-            <div className="text-center p-8 text-gray-500">
-              No products found. Add your first product to get started.
-            </div>
+            <div className="text-center p-8 text-gray-500">No products found. Add your first product to get started.</div>
           ) : (
             <Table>
               <TableHeader>
@@ -109,7 +107,7 @@ export function ProductsContent() {
                   <TableHead>Unit</TableHead>
                   <TableHead>Min Qty</TableHead>
                   <TableHead>Lead Time</TableHead>
-                  <TableHead className="w-12"></TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -122,18 +120,16 @@ export function ProductsContent() {
                       </div>
                     </TableCell>
                     <TableCell>{product.category.name}</TableCell>
-                    <TableCell className="font-medium">
-                      {formatCurrency(product.basePrice)}
-                    </TableCell>
+                    <TableCell className="font-medium">{formatCurrency(product.basePrice)}</TableCell>
                     <TableCell>{product.unit}</TableCell>
                     <TableCell>{product.minQuantity}</TableCell>
                     <TableCell>{product.leadTimeDays} day(s)</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => { setEditProduct(product); setModalOpen(true); }}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-red-600">
+                        <Button variant="ghost" size="icon" className="text-red-600" onClick={() => handleDelete(product.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -145,6 +141,8 @@ export function ProductsContent() {
           )}
         </CardContent>
       </Card>
+
+      <ProductFormModal open={modalOpen} onClose={() => { setModalOpen(false); setEditProduct(null); }} onSuccess={fetchProducts} product={editProduct} />
     </div>
   );
 }

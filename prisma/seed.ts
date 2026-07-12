@@ -106,8 +106,11 @@ async function main() {
 
   // Create products
   const products = await Promise.all([
-    prisma.product.create({
-      data: {
+    prisma.product.upsert({
+      where: { id: "product-seed-1" },
+      update: {},
+      create: {
+        id: "product-seed-1",
         name: "Standard Business Card",
         categoryId: categories[0].id,
         basePrice: 500,
@@ -116,8 +119,11 @@ async function main() {
         leadTimeDays: 1,
       },
     }),
-    prisma.product.create({
-      data: {
+    prisma.product.upsert({
+      where: { id: "product-seed-2" },
+      update: {},
+      create: {
+        id: "product-seed-2",
         name: "Premium Business Card",
         categoryId: categories[0].id,
         basePrice: 1200,
@@ -126,8 +132,11 @@ async function main() {
         leadTimeDays: 2,
       },
     }),
-    prisma.product.create({
-      data: {
+    prisma.product.upsert({
+      where: { id: "product-seed-3" },
+      update: {},
+      create: {
+        id: "product-seed-3",
         name: "A4 Flyer",
         categoryId: categories[1].id,
         basePrice: 300,
@@ -136,8 +145,11 @@ async function main() {
         leadTimeDays: 1,
       },
     }),
-    prisma.product.create({
-      data: {
+    prisma.product.upsert({
+      where: { id: "product-seed-4" },
+      update: {},
+      create: {
+        id: "product-seed-4",
         name: "A5 Brochure",
         categoryId: categories[1].id,
         basePrice: 800,
@@ -146,8 +158,11 @@ async function main() {
         leadTimeDays: 2,
       },
     }),
-    prisma.product.create({
-      data: {
+    prisma.product.upsert({
+      where: { id: "product-seed-5" },
+      update: {},
+      create: {
+        id: "product-seed-5",
         name: "Vinyl Banner (per sqft)",
         categoryId: categories[2].id,
         basePrice: 150,
@@ -181,8 +196,10 @@ async function main() {
 
   // Create materials
   const materials = await Promise.all([
-    prisma.material.create({
-      data: {
+    prisma.material.upsert({
+      where: { code: "PAP-A4-80" },
+      update: {},
+      create: {
         name: "A4 Copy Paper 80gsm",
         code: "PAP-A4-80",
         categoryId: materialCategories[0].id,
@@ -194,8 +211,10 @@ async function main() {
         branchId: branch.id,
       },
     }),
-    prisma.material.create({
-      data: {
+    prisma.material.upsert({
+      where: { code: "PAP-A4-GL150" },
+      update: {},
+      create: {
         name: "A4 Glossy Paper 150gsm",
         code: "PAP-A4-GL150",
         categoryId: materialCategories[0].id,
@@ -207,8 +226,10 @@ async function main() {
         branchId: branch.id,
       },
     }),
-    prisma.material.create({
-      data: {
+    prisma.material.upsert({
+      where: { code: "INK-CMYK" },
+      update: {},
+      create: {
         name: "CMYK Ink Set",
         code: "INK-CMYK",
         categoryId: materialCategories[1].id,
@@ -226,8 +247,11 @@ async function main() {
 
   // Create demo customers
   const customers = await Promise.all([
-    prisma.customer.create({
-      data: {
+    prisma.customer.upsert({
+      where: { id: "customer-seed-1" },
+      update: {},
+      create: {
+        id: "customer-seed-1",
         name: "Rahman Printers",
         phone: "+8801711111111",
         email: "rahman@printers.com",
@@ -236,8 +260,11 @@ async function main() {
         creditLimit: 500000,
       },
     }),
-    prisma.customer.create({
-      data: {
+    prisma.customer.upsert({
+      where: { id: "customer-seed-2" },
+      update: {},
+      create: {
+        id: "customer-seed-2",
         name: "ABC Corporation",
         phone: "+8801722222222",
         email: "info@abccorp.com",
@@ -246,8 +273,11 @@ async function main() {
         creditLimit: 1000000,
       },
     }),
-    prisma.customer.create({
-      data: {
+    prisma.customer.upsert({
+      where: { id: "customer-seed-3" },
+      update: {},
+      create: {
+        id: "customer-seed-3",
         name: "Digital World",
         phone: "+8801733333333",
         email: "contact@digitalworld.com",
@@ -261,8 +291,10 @@ async function main() {
 
   // Create demo machines
   const machines = await Promise.all([
-    prisma.machine.create({
-      data: {
+    prisma.machine.upsert({
+      where: { code: "MCH-001" },
+      update: {},
+      create: {
         name: "HP Indigo Press",
         code: "MCH-001",
         type: "digital_press",
@@ -270,8 +302,10 @@ async function main() {
         branchId: branch.id,
       },
     }),
-    prisma.machine.create({
-      data: {
+    prisma.machine.upsert({
+      where: { code: "MCH-002" },
+      update: {},
+      create: {
         name: "Canon imagePRESS",
         code: "MCH-002",
         type: "digital_press",
@@ -279,8 +313,10 @@ async function main() {
         branchId: branch.id,
       },
     }),
-    prisma.machine.create({
-      data: {
+    prisma.machine.upsert({
+      where: { code: "MCH-003" },
+      update: {},
+      create: {
         name: "Epson SureColor",
         code: "MCH-003",
         type: "digital_press",

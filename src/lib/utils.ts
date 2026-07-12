@@ -73,6 +73,22 @@ export function getStatusColor(status: string): string {
     PAID: "bg-green-100 text-green-800",
     PARTIAL: "bg-yellow-100 text-yellow-800",
     OVERDUE: "bg-red-100 text-red-800",
+    QUEUED: "bg-gray-100 text-gray-800",
+    IN_PROGRESS: "bg-blue-100 text-blue-800",
+    PAUSED: "bg-orange-100 text-orange-800",
+    COMPLETED: "bg-green-100 text-green-800",
+    FAILED: "bg-red-100 text-red-800",
+    APPROVED: "bg-green-100 text-green-800",
+    REJECTED: "bg-red-100 text-red-800",
+    REVISION_NEEDED: "bg-orange-100 text-orange-800",
+    AVAILABLE: "bg-green-100 text-green-800",
+    IN_USE: "bg-yellow-100 text-yellow-800",
+    MAINTENANCE: "bg-red-100 text-red-800",
+    OUT_OF_SERVICE: "bg-red-100 text-red-800",
+    IN: "bg-green-100 text-green-800",
+    OUT: "bg-red-100 text-red-800",
+    ADJUSTMENT: "bg-yellow-100 text-yellow-800",
+    TRANSFER: "bg-blue-100 text-blue-800",
   };
   return colors[status] || "bg-gray-100 text-gray-800";
 }

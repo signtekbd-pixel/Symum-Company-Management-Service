@@ -3,13 +3,14 @@
 import * as React from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
+import { useAppStore } from "@/lib/store";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const { sidebarOpen, setSidebarOpen } = useAppStore();
 
   return (
     <div className="min-h-screen bg-gray-50">
