@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Search, Eye, CreditCard, FileText, Download, CheckCircle } from "lucide-react";
+import { Plus, Search, Eye, CreditCard, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,8 +17,6 @@ import { formatDate, formatCurrency, getStatusColor } from "@/lib/utils";
 import { InvoiceFormModal } from "./invoice-form-modal";
 import { PaymentFormModal } from "./payment-form-modal";
 import toast from "react-hot-toast";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 interface Invoice {
   id: string;
@@ -42,26 +40,10 @@ export function InvoicingContent() {
   const [selectedInvoice, setSelectedInvoice] = React.useState<Invoice | null>(null);
   const [detailModal, setDetailModal] = React.useState(false);
   const [invoiceDetail, setInvoiceDetail] = React.useState<any>(null);
-  const [downloadingPdf, setDownloadingPdf] = React.useState(false);
-  const [markPaidModal, setMarkPaidModal] = React.useState(false);
-  const [markPaidPassword, setMarkPaidPassword] = React.useState("");
-  const [markPaidHolding, setMarkPaidHolding] = React.useState(false);
-  const [markPaidProgress, setMarkPaidProgress] = React.useState(0);
-  const [markPaidLoading, setMarkPaidLoading] = React.useState(false);
-  const holdTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-  const progressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-  const invoicePrintRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     fetchInvoices();
   }, [search, statusFilter]);
-
-  React.useEffect(() => {
-    return () => {
-      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
-      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-    };
-  }, []);
 
   async function fetchInvoices() {
     setLoading(true);
@@ -93,107 +75,6 @@ export function InvoicingContent() {
   function handleRecordPayment(invoice: Invoice) {
     setSelectedInvoice(invoice);
     setPaymentModalOpen(true);
-  }
-
-  async function handleDownloadPdf() {
-    if (!invoicePrintRef.current) return;
-    setDownloadingPdf(true);
-    try {
-      const canvas = await html2canvas(invoicePrintRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${invoiceDetail.invoiceNumber || "invoice"}.pdf`);
-      toast.success("Invoice downloaded");
-    } catch {
-      toast.error("Failed to generate PDF");
-    } finally {
-      setDownloadingPdf(false);
-    }
-  }
-
-  function openMarkPaidModal() {
-    setMarkPaidPassword("");
-    setMarkPaidProgress(0);
-    setMarkPaidHolding(false);
-    setMarkPaidModal(true);
-  }
-
-  function handleHoldStart() {
-    if (!markPaidPassword) {
-      toast.error("Enter your password first");
-      return;
-    }
-    setMarkPaidHolding(true);
-    setMarkPaidProgress(0);
-
-    let progress = 0;
-    progressTimerRef.current = setInterval(() => {
-      progress += 2;
-      setMarkPaidProgress(progress);
-      if (progress >= 100) {
-        if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-      }
-    }, 100);
-
-    holdTimerRef.current = setTimeout(async () => {
-      setMarkPaidHolding(false);
-      setMarkPaidProgress(100);
-      await confirmMarkAsPaid();
-    }, 5000);
-  }
-
-  function handleHoldEnd() {
-    if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
-    if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-    setMarkPaidHolding(false);
-    setMarkPaidProgress(0);
-  }
-
-  async function confirmMarkAsPaid() {
-    setMarkPaidLoading(true);
-    try {
-      const verifyRes = await fetch("/api/verify-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: markPaidPassword }),
-      });
-
-      if (!verifyRes.ok) {
-        toast.error("Invalid password");
-        setMarkPaidPassword("");
-        setMarkPaidProgress(0);
-        return;
-      }
-
-      const patchRes = await fetch(`/api/invoices/${invoiceDetail.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "PAID" }),
-      });
-
-      if (!patchRes.ok) {
-        toast.error("Failed to mark as paid");
-        return;
-      }
-
-      toast.success("Invoice marked as paid");
-      setMarkPaidModal(false);
-      setMarkPaidPassword("");
-      setMarkPaidProgress(0);
-      fetchInvoices();
-      handleViewDetail(invoiceDetail.id);
-    } catch {
-      toast.error("Failed to mark as paid");
-    } finally {
-      setMarkPaidLoading(false);
-    }
   }
 
   return (
@@ -336,32 +217,11 @@ export function InvoicingContent() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-lg font-semibold">Invoice {invoiceDetail.invoiceNumber}</h2>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownloadPdf}
-                  disabled={downloadingPdf}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  {downloadingPdf ? "Generating..." : "Download PDF"}
-                </Button>
-                {invoiceDetail.status !== "PAID" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={openMarkPaidModal}
-                  >
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Mark as Paid
-                  </Button>
-                )}
-                <Button variant="ghost" size="icon" onClick={() => setDetailModal(false)}>
-                  <span className="sr-only">Close</span> X
-                </Button>
-              </div>
+              <Button variant="ghost" size="icon" onClick={() => setDetailModal(false)}>
+                <span className="sr-only">Close</span> X
+              </Button>
             </div>
-            <div className="p-6 space-y-4" ref={invoicePrintRef}>
+            <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Customer</p>
@@ -405,60 +265,6 @@ export function InvoicingContent() {
                   </Table>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {markPaidModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-lg font-semibold">Mark as Paid</h2>
-              <Button variant="ghost" size="icon" onClick={() => { setMarkPaidModal(false); handleHoldEnd(); }}>
-                <span className="sr-only">Close</span> X
-              </Button>
-            </div>
-            <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-600">
-                Confirm payment for invoice <strong>{invoiceDetail.invoiceNumber}</strong> ({formatCurrency(Number(invoiceDetail.totalAmount))}).
-              </p>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Your Password *</label>
-                <Input
-                  type="password"
-                  value={markPaidPassword}
-                  onChange={(e) => setMarkPaidPassword(e.target.value)}
-                  placeholder="Enter your password to confirm"
-                  disabled={markPaidLoading}
-                />
-              </div>
-              <div>
-                <Button
-                  className="w-full h-11 relative overflow-hidden"
-                  onMouseDown={handleHoldStart}
-                  onMouseUp={handleHoldEnd}
-                  onMouseLeave={handleHoldEnd}
-                  onTouchStart={handleHoldStart}
-                  onTouchEnd={handleHoldEnd}
-                  disabled={markPaidLoading || !markPaidPassword}
-                >
-                  <div
-                    className="absolute inset-0 bg-green-500 transition-all duration-100"
-                    style={{ width: `${markPaidProgress}%`, opacity: 0.3 }}
-                  />
-                  <span className="relative z-10">
-                    {markPaidLoading
-                      ? "Processing..."
-                      : markPaidHolding
-                      ? `Hold for ${Math.ceil((5000 - (markPaidProgress / 100) * 5000) / 1000)}s...`
-                      : "Hold for 5 seconds to confirm"}
-                  </span>
-                </Button>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  Press and hold the button for 5 seconds to confirm payment
-                </p>
-              </div>
             </div>
           </div>
         </div>
