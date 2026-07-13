@@ -6,15 +6,6 @@ import { Printer, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const ROLE_OPTIONS = [
-  { value: "CUSTOMER", label: "Customer", desc: "Place orders and track proofs" },
-  { value: "SALES", label: "Sales", desc: "Manage customers and invoicing" },
-  { value: "OPERATOR", label: "Operator", desc: "Manage production jobs" },
-  { value: "MANAGER", label: "Manager", desc: "Oversee operations and inventory" },
-  { value: "ADMIN", label: "Admin", desc: "Full system access" },
-  { value: "DEV", label: "Developer", desc: "Developer access" },
-];
-
 const BUSINESS_TYPES = [
   { value: "INDIVIDUAL", label: "Individual" },
   { value: "BUSINESS", label: "Business" },
@@ -26,7 +17,6 @@ export default function SignupPage() {
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [role, setRole] = React.useState("CUSTOMER");
   const [company, setCompany] = React.useState("");
   const [businessType, setBusinessType] = React.useState("INDIVIDUAL");
   const [error, setError] = React.useState("");
@@ -46,9 +36,8 @@ export default function SignupPage() {
           email,
           password,
           phone,
-          role,
-          company: role === "CUSTOMER" ? company : undefined,
-          type: role === "CUSTOMER" ? businessType : undefined,
+          company,
+          type: businessType,
         }),
       });
 
@@ -137,64 +126,43 @@ export default function SignupPage() {
               </label>
               <Input
                 type="password"
-                placeholder="At least 6 characters"
+                placeholder="At least 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 className="h-11"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-1">
-                Account type
+                Company name <span className="text-muted-foreground text-xs">(optional)</span>
+              </label>
+              <Input
+                type="text"
+                placeholder="Your company"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                className="h-11"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
+                Business type
               </label>
               <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
+                value={businessType}
+                onChange={(e) => setBusinessType(e.target.value)}
                 className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
               >
-                {ROLE_OPTIONS.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label} — {r.desc}
+                {BUSINESS_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
                   </option>
                 ))}
               </select>
             </div>
-
-            {role === "CUSTOMER" && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-1">
-                    Company name <span className="text-muted-foreground text-xs">(optional)</span>
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Your company"
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
-                    className="h-11"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-1">
-                    Business type
-                  </label>
-                  <select
-                    value={businessType}
-                    onChange={(e) => setBusinessType(e.target.value)}
-                    className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    {BUSINESS_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            )}
 
             <Button type="submit" className="w-full h-11" disabled={loading}>
               {loading ? (

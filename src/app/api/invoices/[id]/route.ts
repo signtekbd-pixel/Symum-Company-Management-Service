@@ -1,31 +1,21 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAuth, apiError } from "@/lib/api-auth";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
     const invoice = await prisma.invoice.findUnique({
-      where: { id },
-      include: {
-        customer: true,
-        order: true,
-        payments: {
-          orderBy: { createdAt: "desc" },
-        },
-      },
+      where: { id }, include: { customer: true, order: true, payments: { orderBy: { createdAt: "desc" } } },
     });
-
-    if (!invoice) {
-      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
-    }
-
+    if (!invoice) return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     return NextResponse.json(invoice);
   } catch (error) {
-    console.error("Error fetching invoice:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -34,6 +24,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
     const body = await request.json();
     const { status, dueDate, notes } = body;
@@ -45,16 +36,11 @@ export async function PATCH(
         ...(dueDate !== undefined && { dueDate: new Date(dueDate) }),
         ...(notes !== undefined && { notes }),
       },
-      include: {
-        customer: true,
-        order: true,
-      },
+      include: { customer: true, order: true },
     });
-
     return NextResponse.json(invoice);
   } catch (error) {
-    console.error("Error updating invoice:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -63,15 +49,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
-    await prisma.invoice.update({
-      where: { id },
-      data: { status: "CANCELLED" },
-    });
-
+    await prisma.invoice.update({ where: { id }, data: { status: "CANCELLED" } });
     return NextResponse.json({ message: "Invoice cancelled" });
   } catch (error) {
-    console.error("Error cancelling invoice:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }

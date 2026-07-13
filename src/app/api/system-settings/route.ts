@@ -1,40 +1,44 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireSuperAdmin, apiError } from "@/lib/api-auth";
 
 export async function GET() {
   try {
+    await requireSuperAdmin();
     const settings = await prisma.systemSetting.findMany({
       orderBy: { key: "asc" },
     });
     return NextResponse.json({ settings });
   } catch (error) {
-    console.error("Error fetching system settings:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }
 
 export async function PATCH(request: Request) {
   try {
+    await requireSuperAdmin();
     const body = await request.json();
-    const { settings } = body; // Array of { key, value, description? }
+    const { settings } = body;
 
-    if (!Array.isArray(settings)) {
-      return NextResponse.json({ error: "Settings must be an array" }, { status: 400 });
+    if (!settings || !Array.isArray(settings)) {
+      return NextResponse.json({ error: "settings array is required" }, { status: 400 });
     }
 
-    const updates = await Promise.all(
-      settings.map((s: { key: string; value: string; description?: string }) =>
-        prisma.systemSetting.upsert({
+    await Promise.all(
+      settings.map((s: { key: string; value: string }) =>
+        prisma.systemSetting.update({
           where: { key: s.key },
-          update: { value: s.value, ...(s.description !== undefined && { description: s.description }) },
-          create: { key: s.key, value: s.value, description: s.description },
+          data: { value: s.value },
         })
       )
     );
 
-    return NextResponse.json({ settings: updates });
+    const updated = await prisma.systemSetting.findMany({
+      orderBy: { key: "asc" },
+    });
+
+    return NextResponse.json({ settings: updated });
   } catch (error) {
-    console.error("Error updating system settings:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }

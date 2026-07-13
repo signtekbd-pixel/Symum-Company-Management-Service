@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const VALID_ROLES = ["DEV", "SUPER_ADMIN", "ADMIN", "MANAGER", "SALES", "OPERATOR", "CUSTOMER"];
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    if (rateLimit(request, "signup", 5, 15 * 60 * 1000)) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
-    const { name, email, password, phone, role = "CUSTOMER", company, type } = body;
+    const { name, email, password, phone, company, type } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -16,16 +22,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
-        { status: 400 }
-      );
-    }
-
-    if (!VALID_ROLES.includes(role)) {
-      return NextResponse.json(
-        { error: "Invalid role" },
+        { error: "Password must be at least 8 characters" },
         { status: 400 }
       );
     }
@@ -40,11 +39,16 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const roleRecord = await prisma.role.upsert({
-      where: { name: role },
-      update: {},
-      create: { name: role, description: role },
+    const roleRecord = await prisma.role.findUnique({
+      where: { name: "CUSTOMER" },
     });
+
+    if (!roleRecord) {
+      return NextResponse.json(
+        { error: "System configuration error" },
+        { status: 500 }
+      );
+    }
 
     const user = await prisma.user.create({
       data: {
@@ -57,17 +61,15 @@ export async function POST(request: Request) {
       select: { id: true, name: true, email: true },
     });
 
-    if (role === "CUSTOMER") {
-      await prisma.customer.create({
-        data: {
-          name,
-          email: email,
-          phone: phone || "",
-          company: company || null,
-          type: type || "INDIVIDUAL",
-        },
-      });
-    }
+    await prisma.customer.create({
+      data: {
+        name,
+        email: email,
+        phone: phone || "",
+        company: company || null,
+        type: type || "INDIVIDUAL",
+      },
+    });
 
     return NextResponse.json(
       { message: "Account created successfully", user },

@@ -1,21 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAuth, apiError } from "@/lib/api-auth";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
         customer: true,
-        items: {
-          include: {
-            product: true,
-          },
-        },
+        items: { include: { product: true } },
         branch: true,
         proofs: true,
         productionJobs: true,
@@ -25,19 +23,12 @@ export async function GET(
     });
 
     if (!order) {
-      return NextResponse.json(
-        { error: "Order not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
     return NextResponse.json(order);
   } catch (error) {
-    console.error("Error fetching order:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -46,37 +37,28 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAuth();
     const { id } = await params;
     const body = await request.json();
     const { status, priority, notes, dueDate } = body;
 
-    const order = await prisma.order.findUnique({
-      where: { id },
-    });
-
+    const order = await prisma.order.findUnique({ where: { id } });
     if (!order) {
-      return NextResponse.json(
-        { error: "Order not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
     const updateData: any = {};
 
     if (status) {
       updateData.status = status;
-
-      // Add to order history
       await prisma.orderHistory.create({
         data: {
           orderId: id,
           status,
           notes: `Status changed to ${status}`,
-          changedBy: "system",
+          changedBy: session.user.id,
         },
       });
-
-      // Update timestamps based on status
       if (status === "CONFIRMED") updateData.confirmedAt = new Date();
       if (status === "IN_PRODUCTION") updateData.productionStartedAt = new Date();
       if (status === "DELIVERED") updateData.deliveredAt = new Date();
@@ -90,19 +72,12 @@ export async function PATCH(
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: updateData,
-      include: {
-        customer: true,
-        items: true,
-      },
+      include: { customer: true, items: true },
     });
 
     return NextResponse.json(updatedOrder);
   } catch (error) {
-    console.error("Error updating order:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -111,20 +86,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
-
-    // Soft delete - set status to CANCELLED
     const order = await prisma.order.update({
       where: { id },
       data: { status: "CANCELLED" },
     });
-
     return NextResponse.json(order);
   } catch (error) {
-    console.error("Error deleting order:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireSuperAdmin, apiError } from "@/lib/api-auth";
 
 export async function GET() {
   try {
+    await requireSuperAdmin();
     const [
       totalUsers,
       activeUsers,
@@ -53,7 +55,6 @@ export async function GET() {
       uptime: process.uptime(),
     });
   } catch (error) {
-    console.error("Error fetching system health:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }

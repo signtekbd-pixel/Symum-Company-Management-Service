@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireSuperAdmin, apiError } from "@/lib/api-auth";
 
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireSuperAdmin();
     const { id } = await params;
     const key = await prisma.apiKey.findUnique({ where: { id } });
     if (!key) {
@@ -15,8 +17,7 @@ export async function DELETE(
     await prisma.apiKey.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting API key:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -25,6 +26,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireSuperAdmin();
     const { id } = await params;
     const body = await request.json();
     const { isActive } = body;
@@ -37,7 +39,6 @@ export async function PATCH(
 
     return NextResponse.json(key);
   } catch (error) {
-    console.error("Error updating API key:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }

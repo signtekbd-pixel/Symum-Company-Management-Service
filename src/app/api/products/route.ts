@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAuth, apiError } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
   try {
+    await requireAuth();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
 
-    const where: any = {
-      isActive: true,
-    };
-
+    const where: any = { isActive: true };
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-      ];
+      where.OR = [{ name: { contains: search, mode: "insensitive" } }];
     }
 
     const products = await prisma.product.findMany({
@@ -27,24 +24,18 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ products });
   } catch (error) {
-    console.error("Error fetching products:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
 export async function POST(request: Request) {
   try {
+    await requireAuth();
     const body = await request.json();
     const { name, categoryId, description, basePrice, unit, minQuantity, leadTimeDays } = body;
 
     if (!name || !categoryId || !basePrice) {
-      return NextResponse.json(
-        { error: "Name, category, and base price are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Name, category, and base price are required" }, { status: 400 });
     }
 
     const product = await prisma.product.create({
@@ -57,17 +48,11 @@ export async function POST(request: Request) {
         minQuantity: minQuantity || 1,
         leadTimeDays: leadTimeDays || 1,
       },
-      include: {
-        category: true,
-      },
+      include: { category: true },
     });
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
-    console.error("Error creating product:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

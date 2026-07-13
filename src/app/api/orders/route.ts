@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { generateOrderNumber } from "@/lib/utils";
+import { requireAuth, apiError } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
   try {
+    await requireAuth();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status");
@@ -54,16 +55,13 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Error fetching orders:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const session = await requireAuth();
     const body = await request.json();
     const {
       customerId,
@@ -84,7 +82,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Calculate totals
     let subtotal = 0;
     const orderItems = items.map((item: any) => {
       const itemTotal = item.quantity * item.unitPrice - (item.discount || 0);
@@ -105,7 +102,7 @@ export async function POST(request: Request) {
 
     const order = await prisma.order.create({
       data: {
-        orderNumber: generateOrderNumber(),
+        orderNumber: `ORD-${Date.now()}`,
         customerId,
         branchId,
         priority: priority || "NORMAL",
@@ -116,7 +113,7 @@ export async function POST(request: Request) {
         deliveryMethod,
         subtotal,
         totalAmount: subtotal,
-        createdBy: "system",
+        createdBy: session.user.id,
         items: {
           create: orderItems,
         },
@@ -129,10 +126,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
-    console.error("Error creating order:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

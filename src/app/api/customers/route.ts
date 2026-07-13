@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAuth, apiError } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
   try {
+    await requireAuth();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const type = searchParams.get("type");
@@ -50,16 +52,13 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Error fetching customers:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
 export async function POST(request: Request) {
   try {
+    await requireAuth();
     const body = await request.json();
     const { name, email, phone, altPhone, company, address, city, type, creditLimit, notes } = body;
 
@@ -87,10 +86,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(customer, { status: 201 });
   } catch (error) {
-    console.error("Error creating customer:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

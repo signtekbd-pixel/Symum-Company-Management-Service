@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAdmin, apiError } from "@/lib/api-auth";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin();
     const { id } = await params;
     const branch = await prisma.branch.findUnique({
       where: { id },
@@ -18,8 +20,7 @@ export async function GET(
 
     return NextResponse.json(branch);
   } catch (error) {
-    console.error("Error fetching branch:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -28,6 +29,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin();
     const { id } = await params;
     const body = await request.json();
     const { name, code, address, phone, email, isActive } = body;
@@ -59,8 +61,7 @@ export async function PATCH(
 
     return NextResponse.json(branch);
   } catch (error) {
-    console.error("Error updating branch:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -69,11 +70,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireAdmin();
     const { id } = await params;
     await prisma.branch.update({ where: { id }, data: { isActive: false } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deactivating branch:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }

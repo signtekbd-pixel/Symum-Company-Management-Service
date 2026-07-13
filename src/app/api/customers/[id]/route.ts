@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAuth, apiError } from "@/lib/api-auth";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
     const customer = await prisma.customer.findUnique({
       where: { id },
@@ -24,8 +26,7 @@ export async function GET(
 
     return NextResponse.json(customer);
   } catch (error) {
-    console.error("Error fetching customer:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -34,18 +35,30 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
     const body = await request.json();
+    const { name, email, phone, altPhone, company, address, city, type, creditLimit, notes } = body;
 
     const customer = await prisma.customer.update({
       where: { id },
-      data: body,
+      data: {
+        ...(name !== undefined && { name }),
+        ...(email !== undefined && { email }),
+        ...(phone !== undefined && { phone }),
+        ...(altPhone !== undefined && { altPhone }),
+        ...(company !== undefined && { company }),
+        ...(address !== undefined && { address }),
+        ...(city !== undefined && { city }),
+        ...(type !== undefined && { type }),
+        ...(creditLimit !== undefined && { creditLimit }),
+        ...(notes !== undefined && { notes }),
+      },
     });
 
     return NextResponse.json(customer);
   } catch (error) {
-    console.error("Error updating customer:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -54,6 +67,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
     await prisma.customer.update({
       where: { id },
@@ -62,7 +76,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Customer deleted" });
   } catch (error) {
-    console.error("Error deleting customer:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import crypto from "crypto";
+import { requireSuperAdmin, apiError } from "@/lib/api-auth";
 
 function generateApiKey() {
   const prefix = "pk_";
@@ -10,6 +11,7 @@ function generateApiKey() {
 
 export async function GET() {
   try {
+    const session = await requireSuperAdmin();
     const keys = await prisma.apiKey.findMany({
       select: {
         id: true,
@@ -25,18 +27,18 @@ export async function GET() {
     });
     return NextResponse.json({ keys });
   } catch (error) {
-    console.error("Error fetching API keys:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const session = await requireSuperAdmin();
     const body = await request.json();
-    const { name, scopes, userId, expiresAt } = body;
+    const { name, scopes, expiresAt } = body;
 
-    if (!name || !userId) {
-      return NextResponse.json({ error: "name and userId are required" }, { status: 400 });
+    if (!name) {
+      return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
 
     const { key, prefix, hash } = generateApiKey();
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
         keyHash: hash,
         keyPrefix: prefix,
         scopes: scopes || [],
-        userId,
+        userId: session.user.id,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
       },
       select: {
@@ -61,7 +63,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ...apiKey, key }, { status: 201 });
   } catch (error) {
-    console.error("Error creating API key:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }

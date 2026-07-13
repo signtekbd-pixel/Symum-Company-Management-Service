@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireSuperAdmin, apiError } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
   try {
+    await requireSuperAdmin();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId") || "";
     const entity = searchParams.get("entity") || "";
@@ -29,7 +31,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ logs, total, page, limit });
   } catch (error) {
-    console.error("Error fetching audit logs:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiError(error);
   }
 }

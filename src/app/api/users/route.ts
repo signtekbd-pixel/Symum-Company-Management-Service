@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { requireAdmin, apiError } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
   try {
+    const session = await requireAdmin();
     const body = await request.json();
     const { name, email, password, phone, role = "SALES" } = body;
 
@@ -60,16 +62,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    console.error("Error creating user:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
 export async function GET() {
   try {
+    const session = await requireAdmin();
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -85,10 +84,6 @@ export async function GET() {
 
     return NextResponse.json(users);
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
